@@ -1,8 +1,8 @@
-# Workspace
+# Life Engine Ultra — Workspace
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+pnpm workspace monorepo using TypeScript. Contains a production React Native (Expo) app with AI coaching, gamification, and full life management features.
 
 ## Stack
 
@@ -10,11 +10,40 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Node.js version**: 24
 - **Package manager**: pnpm
 - **TypeScript version**: 5.9
+- **Mobile app**: Expo / React Native (expo-router file-based routing)
 - **API framework**: Express 5
 - **Database**: PostgreSQL + Drizzle ORM
 - **Validation**: Zod (`zod/v4`), `drizzle-zod`
-- **API codegen**: Orval (from OpenAPI spec)
+- **AI**: OpenRouter API (mistral-7b-instruct + openchat fallback) — key: EXPO_PUBLIC_OPENROUTER_API_KEY
+- **Notifications**: expo-notifications (real system notifications + daily reminders)
 - **Build**: esbuild (CJS bundle)
+
+## Life Engine Ultra Features (artifacts/life-engine-ultra)
+
+### Tabs
+- **Home** — Life Score ring, AI quotes (real Hindi/English), XP bar, quick actions, screen time banner
+- **Tasks** — Priority tasks, filters, add task sheet
+- **Focus** — Pomodoro timer with XP rewards
+- **Health** — Water tracker, sleep tracker, journal, gratitude, breathing, expense tracker, digital detox
+- **Stats** — 7-day charts, habit heatmap, AI weekly report
+- **Me** — Achievements, settings, profile
+
+### Core Systems
+- **Screen Time Blocking**: Tracks usage, blocks after 60min (configurable), full-screen overlay with hold-to-override
+- **Digital Detox**: Scheduled quiet hours (10PM–7AM), detox challenges with XP rewards
+- **Real Notifications**: System push notifications — morning/afternoon/evening/hydration/sleep reminders, task reminders, screen time warnings
+- **XP & Leveling**: `level = floor(sqrt(totalXP/100)) + 1`, discipline/productivity/focus scores feed Life Score
+- **AI Coaching**: Daily motivation, micro-actions, behavior analysis, weekly reports via OpenRouter
+- **Wellness Tracking**: Water (8 glass goal), sleep hours, journal with prompts, gratitude list, expense tracker
+
+### Services
+- `src/services/aiService.ts` — OpenRouter calls with Hindi/English personality
+- `src/services/notificationService.ts` — expo-notifications with Android channels
+- `src/services/screenTimeService.ts` — Usage tracking, limit enforcement, detox scheduling
+
+### API Server Fix (Vercel)
+- Added `esModuleInterop: true` + `allowSyntheticDefaultImports: true` to api-server tsconfig to fix pino-http type error
+- Added explicit types to req/res serializer params in app.ts
 
 ## Structure
 

@@ -23,6 +23,12 @@ import { TaskCard } from "@/src/components/TaskCard";
 import { XPBar } from "@/src/components/XPBar";
 import { useApp } from "@/src/store/useAppStore";
 import { generateDailyMotivation, suggestMicroActions } from "@/src/services/aiService";
+import {
+  loadScreenTime,
+  calcCurrentUsage,
+  getUsagePercent,
+  formatMinutes,
+} from "@/src/services/screenTimeService";
 
 export default function HomeScreen() {
   const C = Colors.dark;
@@ -32,6 +38,9 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [aiNudge, setAiNudge] = useState("");
   const [microActions, setMicroActions] = useState<string[]>([]);
+  const [screenUsageMin, setScreenUsageMin] = useState(0);
+  const [screenLimitMin, setScreenLimitMin] = useState(60);
+  const [screenPercent, setScreenPercent] = useState(0);
 
   const topPadding = Platform.OS === "web" ? 67 : insets.top;
   const today = new Date().toISOString().split("T")[0];
@@ -45,7 +54,16 @@ export default function HomeScreen() {
   useEffect(() => {
     loadAiContent();
     app.refreshScores();
+    loadScreenUsage();
   }, []);
+
+  const loadScreenUsage = async () => {
+    const st = await loadScreenTime();
+    const usage = calcCurrentUsage(st);
+    setScreenUsageMin(usage);
+    setScreenLimitMin(st.dailyLimitMinutes);
+    setScreenPercent(getUsagePercent(st, usage));
+  };
 
   const loadAiContent = async () => {
     try {
@@ -158,6 +176,38 @@ export default function HomeScreen() {
           </View>
         </GlassCard>
 
+        {/* Screen Time Banner */}
+        {screenPercent > 60 && (
+          <Pressable onPress={() => router.push("/(tabs)/wellness")}>
+            <GlassCard
+              style={[
+                styles.quoteCard,
+                { borderColor: screenPercent >= 100 ? "rgba(255,68,68,0.5)" : "rgba(255,165,0,0.4)", marginBottom: 12 },
+              ]}
+              glowColor={screenPercent >= 100 ? "#FF4444" : "#FFA500"}
+            >
+              <View style={styles.quoteRow}>
+                <Feather
+                  name="clock"
+                  size={16}
+                  color={screenPercent >= 100 ? "#FF4444" : "#FFA500"}
+                />
+                <View style={{ flex: 1, marginLeft: 8 }}>
+                  <Text style={{ color: screenPercent >= 100 ? "#FF4444" : "#FFA500", fontSize: 12, fontWeight: "700" }}>
+                    {screenPercent >= 100 ? "🛑 SCREEN TIME LIMIT REACHED" : `⚠️ ${Math.round(screenPercent)}% of screen time used`}
+                  </Text>
+                  <View style={{ height: 4, backgroundColor: "rgba(255,255,255,0.1)", borderRadius: 2, marginTop: 6, overflow: "hidden" }}>
+                    <View style={{ width: `${Math.min(100, screenPercent)}%`, height: "100%", backgroundColor: screenPercent >= 100 ? "#FF4444" : "#FFA500", borderRadius: 2 }} />
+                  </View>
+                  <Text style={{ color: "rgba(255,255,255,0.5)", fontSize: 11, marginTop: 4 }}>
+                    {formatMinutes(screenUsageMin)} used · {formatMinutes(screenLimitMin)} limit · Tap to manage
+                  </Text>
+                </View>
+              </View>
+            </GlassCard>
+          </Pressable>
+        )}
+
         {/* Urgent Alerts */}
         {urgentTasks.length > 0 && (
           <GlassCard style={[styles.urgentCard, { borderColor: `${C.danger}50` }]} glowColor={C.danger}>
@@ -202,6 +252,13 @@ export default function HomeScreen() {
           >
             <Feather name="bar-chart-2" size={18} color={C.levelColor} />
             <Text style={[styles.quickBtnText, { color: C.levelColor }]}>Stats</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium); router.push("/(tabs)/wellness"); }}
+            style={[styles.quickBtn, { backgroundColor: "rgba(236,72,153,0.15)", borderColor: "rgba(236,72,153,0.35)" }]}
+          >
+            <Feather name="heart" size={18} color="#EC4899" />
+            <Text style={[styles.quickBtnText, { color: "#EC4899" }]}>Health</Text>
           </Pressable>
         </View>
 

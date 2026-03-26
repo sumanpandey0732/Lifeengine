@@ -24,3 +24,8 @@ expertMode = true
 [postMerge]
 path = "scripts/post-merge.sh"
 timeoutMs = 20000
+
+[userenv]
+
+[userenv.shared]
+EXPO_PUBLIC_OPENROUTER_API_KEY = "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"
